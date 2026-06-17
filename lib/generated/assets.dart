@@ -2,8 +2,9 @@
 class Assets {
   Assets._();
 
-  static const String assetsImagesSliderAnimation = 'assets/images/multiple_section_filter.gif';
+  static const String assetsImagesMultipleSectionFilter = 'assets/images/multiple_section_filter.gif';
   static const String imagesIcProgressHandle = 'assets/images/ic_progress_handle.webp';
-  static const String imagesSliderAnimation = 'assets/images/multiple_section_filter.gif';
+  static const String imagesMultipleSection = 'assets/images/multiple_section.gif';
+  static const String imagesMultipleSectionFilter = 'assets/images/multiple_section_filter.gif';
 
 }
