@@ -888,7 +888,7 @@ class _SmallTransportCard extends StatelessWidget {
       child: Container(
         height: _PageTokens.smallTransportCardHeight,
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
         decoration: BoxDecoration(
           color: const Color(0xFF202534),
           borderRadius: BorderRadius.circular(24.r),
@@ -1022,7 +1022,7 @@ class _HeroSection extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        'Home V4 滚动与筛选框架',
+                        '滚动与筛选框架',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 34.sp,
