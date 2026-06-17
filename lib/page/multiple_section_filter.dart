@@ -19,6 +19,7 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
   int _currentTab = 0;
   int _selectedSortIndex = -1;
   int _selectedOwnerIndex = -1;
+  bool _showStickyTransportCard = false;
   bool _showFilterOverlay = false;
   bool _onlyDistanceFilter = false;
   String _routeStart = '';
@@ -56,6 +57,7 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     _allItems = List<_DemoFreightCardData>.generate(18, (int index) {
       final bool myTab = index.isEven;
       return _DemoFreightCardData(
@@ -79,6 +81,7 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_handleScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -88,10 +91,25 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
         ? null
         : MediaQuery.maybeOf(context);
     return _StickyLayoutMetrics(
+      hasPinnedTransportCard: _showStickyTransportCard,
       viewportHeight: mediaQuery == null
           ? 0
           : mediaQuery.size.height - mediaQuery.padding.top,
     );
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    final bool shouldShowStickyCard =
+        _scrollController.offset > _PageTokens.transportStickySwitchOffset;
+    if (shouldShowStickyCard == _showStickyTransportCard) {
+      return;
+    }
+    setState(() {
+      _showStickyTransportCard = shouldShowStickyCard;
+    });
   }
 
   Future<void> _scrollToPinnedTab() async {
@@ -387,6 +405,7 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
                 SliverToBoxAdapter(
                   child: SizedBox(height: _PageTokens.sectionGapHeight),
                 ),
+                _TransportStickySliver(showSticky: _showStickyTransportCard),
                 const SliverToBoxAdapter(child: _HeroSection()),
                 SliverToBoxAdapter(
                   child: SizedBox(height: _PageTokens.sectionGapHeight),
@@ -543,6 +562,15 @@ class _PageTokens {
   static const Duration filterOverlayPanelDuration = Duration(
     milliseconds: 320,
   );
+  static const Duration transportCardSwitchDuration = Duration(
+    milliseconds: 280,
+  );
+
+  static double get bigTransportCardHeight => 276.h;
+
+  static double get smallTransportCardHeight => 108.h;
+
+  static double get transportStickySwitchOffset => 170.h;
 
   static double get tabStickyHeight => 96.h;
 
@@ -556,14 +584,22 @@ class _PageTokens {
 }
 
 class _StickyLayoutMetrics {
-  const _StickyLayoutMetrics({required this.viewportHeight});
+  const _StickyLayoutMetrics({
+    required this.hasPinnedTransportCard,
+    required this.viewportHeight,
+  });
 
+  final bool hasPinnedTransportCard;
   final double viewportHeight;
 
-  double get pinnedTopHeight => 0;
+  double get pinnedTransportHeight => hasPinnedTransportCard
+      ? _PageTokens.smallTransportCardHeight
+      : 0;
+
+  double get pinnedTopHeight => pinnedTransportHeight;
 
   double get stickyOccupiedHeight =>
-      pinnedTopHeight +
+      pinnedTransportHeight +
       _PageTokens.tabStickyHeight +
       _PageTokens.filterStickyHeight;
 
@@ -580,7 +616,7 @@ class _StickyLayoutMetrics {
     required RenderBox? tabBox,
   }) {
     if (stackBox == null || tabBox == null) {
-      return pinnedTopHeight + _PageTokens.tabStickyHeight;
+      return pinnedTransportHeight + _PageTokens.tabStickyHeight;
     }
     final Offset topLeft = tabBox.localToGlobal(
       Offset.zero,
@@ -635,6 +671,326 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.height != height ||
         oldDelegate.child != child ||
         oldDelegate.showShadow != showShadow;
+  }
+}
+
+class _TransportStickySliver extends StatelessWidget {
+  const _TransportStickySliver({
+    required this.showSticky,
+  });
+
+  final bool showSticky;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _StickyHeaderDelegate(
+        height: showSticky
+            ? _PageTokens.smallTransportCardHeight
+            : _PageTokens.bigTransportCardHeight,
+        child: _TransportStickyCard(showSticky: showSticky),
+      ),
+    );
+  }
+}
+
+class _TransportStickyCard extends StatelessWidget {
+  const _TransportStickyCard({
+    required this.showSticky,
+  });
+
+  final bool showSticky;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: _PageTokens.transportCardSwitchDuration,
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+        return Stack(
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+        );
+      },
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        final Animation<double> fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        final Animation<double> scaleAnimation = Tween<double>(
+          begin: 0.994,
+          end: 1,
+        ).animate(fadeAnimation);
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: ScaleTransition(
+            scale: scaleAnimation,
+            alignment: Alignment.topCenter,
+            child: child,
+          ),
+        );
+      },
+      child: showSticky
+          ? const _TransportStickyContainer(
+              key: ValueKey<String>('small_transport_card'),
+              alignment: Alignment.center,
+              child: _SmallTransportCard(),
+            )
+          : const _TransportStickyContainer(
+              key: ValueKey<String>('big_transport_card'),
+              alignment: Alignment.topCenter,
+              child: _BigTransportCard(),
+            ),
+    );
+  }
+}
+
+class _TransportStickyContainer extends StatelessWidget {
+  const _TransportStickyContainer({
+    required super.key,
+    required this.child,
+    this.alignment = Alignment.topCenter,
+  });
+
+  final Widget child;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: Align(
+        alignment: alignment,
+        child: OverflowBox(
+          alignment: alignment,
+          minHeight: 0,
+          maxHeight: double.infinity,
+          child: ColoredBox(
+            color: const Color(0xFFF1F3F7),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BigTransportCard extends StatelessWidget {
+  const _BigTransportCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Container(
+        height: _PageTokens.bigTransportCardHeight,
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(22.w, 22.h, 22.w, 20.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28.r),
+          gradient: const LinearGradient(
+            colors: <Color>[Color(0xFF1F2433), Color(0xFF38445D)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0x26FFFFFF),
+                    borderRadius: BorderRadius.circular(999.r),
+                  ),
+                  child: Text(
+                    '运输中',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '沪A·D5326',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 22.h),
+            Text(
+              '上海青浦园区 -> 苏州昆山仓',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 34.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              '司机已接单，预计 2 小时后到达装货地',
+              style: TextStyle(
+                color: const Color(0xCCFFFFFF),
+                fontSize: 24.sp,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: _TransportMetric(
+                    label: '运输单号',
+                    value: 'WB20260617001',
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _TransportMetric(
+                    label: '司机',
+                    value: '王师傅',
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _TransportMetric(
+                    label: '车辆',
+                    value: '17.5米',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SmallTransportCard extends StatelessWidget {
+  const _SmallTransportCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Container(
+        height: _PageTokens.smallTransportCardHeight,
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFF202534),
+          borderRadius: BorderRadius.circular(24.r),
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 72.w,
+              height: 72.w,
+              decoration: BoxDecoration(
+                color: const Color(0x1FFFFFFF),
+                borderRadius: BorderRadius.circular(18.r),
+              ),
+              child: Icon(
+                Icons.local_shipping_rounded,
+                size: 34.sp,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    '上海青浦园区 -> 苏州昆山仓',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    '司机已接单，预计 2 小时后到达装货地',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: const Color(0xCCFFFFFF),
+                      fontSize: 22.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 34.sp,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TransportMetric extends StatelessWidget {
+  const _TransportMetric({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0x14FFFFFF),
+        borderRadius: BorderRadius.circular(18.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            label,
+            style: TextStyle(
+              color: const Color(0xB3FFFFFF),
+              fontSize: 20.sp,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
