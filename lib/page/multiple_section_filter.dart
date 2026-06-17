@@ -889,7 +889,7 @@ class _SmallTransportCard extends StatelessWidget {
       child: Container(
         height: _PageTokens.smallTransportCardHeight,
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
         decoration: BoxDecoration(
           color: const Color(0xFF202534),
           borderRadius: BorderRadius.circular(24.r),
@@ -914,6 +914,7 @@ class _SmallTransportCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
                     '上海青浦园区 -> 苏州昆山仓',
@@ -925,7 +926,7 @@ class _SmallTransportCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: 4.h),
                   Text(
                     '司机已接单，预计 2 小时后到达装货地',
                     maxLines: 1,
