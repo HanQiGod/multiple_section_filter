@@ -1,5 +1,5 @@
-class HomeV4FilterTokens {
-  const HomeV4FilterTokens._();
+class FilterTokens {
+  const FilterTokens._();
 
   static const String distanceQuickTag = '装货地距离';
   static const String nearestSort = '离我最近';
@@ -85,14 +85,14 @@ class HomeFilterSubmitData {
       ...skuIds.where((String item) => item.isNotEmpty),
     ];
     if (distance > 0) {
-      options.add(HomeV4FilterTokens.formatDistanceOption(distance));
+      options.add(FilterTokens.formatDistanceOption(distance));
     }
     return options;
   }
 }
 
-class HomeV4FilterSelectionState {
-  const HomeV4FilterSelectionState({
+class FilterSelectionState {
+  const FilterSelectionState({
     required this.advancedOptions,
     required this.distance,
   });
@@ -105,18 +105,18 @@ class HomeV4FilterSelectionState {
   List<String> get selectedOptions {
     return <String>[
       ...advancedOptions,
-      if (hasDistanceFilter) HomeV4FilterTokens.formatDistanceOption(distance),
+      if (hasDistanceFilter) FilterTokens.formatDistanceOption(distance),
     ];
   }
 
   String distanceLabel({String? fallbackLabel}) {
     if (hasDistanceFilter) {
-      return HomeV4FilterTokens.formatDistanceOption(distance);
+      return FilterTokens.formatDistanceOption(distance);
     }
-    return fallbackLabel ?? HomeV4FilterTokens.distanceQuickTag;
+    return fallbackLabel ?? FilterTokens.distanceQuickTag;
   }
 
-  factory HomeV4FilterSelectionState.fromSelectedOptions(
+  factory FilterSelectionState.fromSelectedOptions(
     Iterable<String> options,
   ) {
     final List<String> advancedOptions = <String>[];
@@ -128,8 +128,8 @@ class HomeV4FilterSelectionState {
       if (item.isEmpty) {
         continue;
       }
-      if (HomeV4FilterTokens.isDistanceOption(item)) {
-        distance = HomeV4FilterTokens.parseDistanceOption(item);
+      if (FilterTokens.isDistanceOption(item)) {
+        distance = FilterTokens.parseDistanceOption(item);
         continue;
       }
       if (seen.add(item)) {
@@ -137,15 +137,15 @@ class HomeV4FilterSelectionState {
       }
     }
 
-    return HomeV4FilterSelectionState(
+    return FilterSelectionState(
       advancedOptions: advancedOptions,
       distance: distance,
     );
   }
 }
 
-class HomeV4FilterPanelState {
-  const HomeV4FilterPanelState({
+class FilterPanelState {
+  const FilterPanelState({
     required this.segmentIndex,
     required this.sortType,
     required this.skuIds,
@@ -163,7 +163,7 @@ class HomeV4FilterPanelState {
   final List<String> channelOptions;
   final List<String> highlightOptions;
 
-  factory HomeV4FilterPanelState.fromLogic({
+  factory FilterPanelState.fromLogic({
     required int segmentIndex,
     required List<String> skuIds,
     required num distance,
@@ -171,7 +171,7 @@ class HomeV4FilterPanelState {
     required List<String> channelOptions,
     required List<String> highlightOptions,
   }) {
-    return HomeV4FilterPanelState(
+    return FilterPanelState(
       segmentIndex: segmentIndex,
       sortType: '',
       skuIds: skuIds,
@@ -183,8 +183,8 @@ class HomeV4FilterPanelState {
   }
 }
 
-class HomeV4QuickTagDisplayState {
-  const HomeV4QuickTagDisplayState({
+class QuickTagDisplayState {
+  const QuickTagDisplayState({
     required this.tag,
     required this.label,
     required this.selected,
@@ -197,8 +197,8 @@ class HomeV4QuickTagDisplayState {
   final bool showArrow;
 }
 
-class HomeV4FilterDisplayState {
-  const HomeV4FilterDisplayState({
+class FilterDisplayState {
+  const FilterDisplayState({
     required this.currentTab,
     required this.selectedSortIndex,
     required this.selectedSortLabel,
@@ -226,7 +226,7 @@ class HomeV4FilterDisplayState {
   final bool hasActiveFilters;
   final String routeStartLabel;
   final String routeEndLabel;
-  final List<HomeV4QuickTagDisplayState> quickTags;
+  final List<QuickTagDisplayState> quickTags;
   final List<String> selectedOptions;
   final String selectedDistanceLabel;
   final String loadingPlaceText;
@@ -246,8 +246,8 @@ class HomeV4FilterDisplayState {
       ].join('|');
 }
 
-class HomeV4PageFilterState {
-  const HomeV4PageFilterState({
+class PageFilterState {
+  const PageFilterState({
     required this.refreshKey,
     required this.emptyTitle,
     required this.emptySubtitle,
@@ -257,10 +257,10 @@ class HomeV4PageFilterState {
   final String emptyTitle;
   final String emptySubtitle;
 
-  factory HomeV4PageFilterState.fromDisplayState(
-    HomeV4FilterDisplayState state,
+  factory PageFilterState.fromDisplayState(
+    FilterDisplayState state,
   ) {
-    return HomeV4PageFilterState(
+    return PageFilterState(
       refreshKey: state.refreshKey,
       emptyTitle: state.hasActiveFilters ? '没有找到相关货源' : '暂无符合条件的数据',
       emptySubtitle: state.hasActiveFilters ? '请修改筛选条件' : '切换 tab 或调整筛选条件后再试',
@@ -268,8 +268,8 @@ class HomeV4PageFilterState {
   }
 }
 
-class HomeV4PageListState<T> {
-  const HomeV4PageListState({
+class PageListState<T> {
+  const PageListState({
     required this.isFirstLoading,
     required this.hasError,
     required this.items,
@@ -284,14 +284,14 @@ class HomeV4PageListState<T> {
   final bool hasMore;
 }
 
-class HomeV4PageContentState<T> {
-  const HomeV4PageContentState({
+class PageContentState<T> {
+  const PageContentState({
     required this.listState,
     required this.emptyTitle,
     required this.emptySubtitle,
   });
 
-  final HomeV4PageListState<T> listState;
+  final PageListState<T> listState;
   final String emptyTitle;
   final String emptySubtitle;
 
@@ -304,8 +304,8 @@ class HomeV4PageContentState<T> {
   bool get showEmpty => !isFirstLoading && !hasError && items.isEmpty;
 }
 
-class HomeV4PageTransportState<T> {
-  const HomeV4PageTransportState({
+class PageTransportState<T> {
+  const PageTransportState({
     required this.currentWaybill,
     required this.showSticky,
     required this.showWaybillInfo,
@@ -320,8 +320,8 @@ class HomeV4PageTransportState<T> {
   final bool isPreOrder;
 }
 
-class HomeV4FooterState {
-  const HomeV4FooterState({
+class FooterState {
+  const FooterState({
     required this.isFirstLoading,
     required this.isLoadingMore,
     required this.hasMore,
@@ -333,8 +333,8 @@ class HomeV4FooterState {
   final bool hasMore;
   final bool hasItems;
 
-  factory HomeV4FooterState.fromListState(HomeV4PageListState<dynamic> state) {
-    return HomeV4FooterState(
+  factory FooterState.fromListState(PageListState<dynamic> state) {
+    return FooterState(
       isFirstLoading: state.isFirstLoading,
       isLoadingMore: state.isLoadingMore,
       hasMore: state.hasMore,
@@ -343,8 +343,8 @@ class HomeV4FooterState {
   }
 }
 
-class HomeV4RankSectionState {
-  const HomeV4RankSectionState({
+class RankSectionState {
+  const RankSectionState({
     required this.showRanking,
     required this.totalCount,
     required this.updateRankData,
@@ -355,8 +355,8 @@ class HomeV4RankSectionState {
   final bool updateRankData;
 }
 
-class HomeV4PageViewState<T, W> {
-  const HomeV4PageViewState({
+class PageViewState<T, W> {
+  const PageViewState({
     required this.filter,
     required this.list,
     required this.content,
@@ -365,10 +365,10 @@ class HomeV4PageViewState<T, W> {
     required this.transport,
   });
 
-  final HomeV4PageFilterState filter;
-  final HomeV4PageListState<T> list;
-  final HomeV4PageContentState<T> content;
-  final HomeV4FooterState footer;
-  final HomeV4RankSectionState rank;
-  final HomeV4PageTransportState<W> transport;
+  final PageFilterState filter;
+  final PageListState<T> list;
+  final PageContentState<T> content;
+  final FooterState footer;
+  final RankSectionState rank;
+  final PageTransportState<W> transport;
 }
