@@ -406,6 +406,7 @@ class _MultipleSectionFilterPageState extends State<MultipleSectionFilterPage> {
                   child: SizedBox(height: _PageTokens.sectionGapHeight),
                 ),
                 _TransportStickySliver(showSticky: _showStickyTransportCard),
+                SliverToBoxAdapter(child: SizedBox(height: 16.h)),
                 const SliverToBoxAdapter(child: _HeroSection()),
                 SliverToBoxAdapter(
                   child: SizedBox(height: _PageTokens.sectionGapHeight),
@@ -789,7 +790,7 @@ class _BigTransportCard extends StatelessWidget {
       child: Container(
         height: _PageTokens.bigTransportCardHeight,
         width: double.infinity,
-        padding: EdgeInsets.fromLTRB(22.w, 22.h, 22.w, 20.h),
+        padding: EdgeInsets.fromLTRB(22.w, 18.h, 22.w, 16.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28.r),
           gradient: const LinearGradient(
@@ -829,7 +830,7 @@ class _BigTransportCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 22.h),
+            SizedBox(height: 16.h),
             Text(
               '上海青浦园区 -> 苏州昆山仓',
               style: TextStyle(
@@ -838,7 +839,7 @@ class _BigTransportCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 8.h),
             Text(
               '司机已接单，预计 2 小时后到达装货地',
               style: TextStyle(
@@ -962,7 +963,7 @@ class _TransportMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         color: const Color(0x14FFFFFF),
         borderRadius: BorderRadius.circular(18.r),
@@ -977,7 +978,7 @@ class _TransportMetric extends StatelessWidget {
               fontSize: 20.sp,
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: 4.h),
           Text(
             value,
             maxLines: 1,
